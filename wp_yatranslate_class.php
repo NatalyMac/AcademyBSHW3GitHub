@@ -52,9 +52,30 @@ public $copyright = NULL;
 public $url = NULL;
 
 // TODO public function setParams()
-/**
-*
-*/
+
+public function setParams()
+{
+if (@file_get_contents(__DIR__ . '/settings.json')) {
+        if (json_decode(file_get_contents(__DIR__ . '/settings.json'), true)) {
+        $settings = json_decode(file_get_contents(__DIR__ . '/settings.json'), true);
+            //return $settings;
+        } else {
+        	echo "Can not read the settings file";
+        	return false;
+        }
+    } else {
+        echo "Can not find the settings file";
+    	return false;
+    }
+
+	$this->key = $settings["key"];
+    $this->lang_default = $settings["lang_default"];
+    $this->format = $settings["format"];
+    $this->copyright = $settings["copyright"];
+    $this->ya_link = $settings["ya_link"];
+    $this->url = $settings["URI"];
+
+}
 
 public function __construct($content)
 /** 
