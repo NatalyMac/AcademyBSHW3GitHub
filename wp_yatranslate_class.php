@@ -74,7 +74,8 @@ if (@file_get_contents(__DIR__ . '/settings.json')) {
     $this->copyright = $settings["copyright"];
     $this->ya_link = $settings["ya_link"];
     $this->url = $settings["URI"];
-
+// here was a big bug
+// i fixed it
 }
 
 public function __construct($content)
