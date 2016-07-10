@@ -1,0 +1,629 @@
+Задачи
+
+1. Работа с историей изменений. 
+1.1 которая выводит сообщения и автора всех коммитов из ветки develop-feature1,
+которые сделаны за последние 3 часа и которых нет в родительских ветках (develop, master).
+Сортировка по дате, первые более новые.
+
+
+Выбираем лог по заданной ветке
+$ git log develop-feature1 --pretty=format:"%s, %an, %ar" --after=4.hours
+--no-merges --first-parent
+
+1_1:Plugin Translator WP (all done), Nataly Kulychyk, 2 часа назад
+1_1:Plugin Translator WP (need one more test), Nataly Kulychyk, 3 часа назад
+1_1:Plugin Translator WP (report added), Nataly Kulychyk, 4 часа назад
+1_1:Plugin Translator WP (settings file added), Nataly Kulychyk, 4 часа назад
+1_1:Plugin Translator WP (method setParams done), Nataly Kulychyk, 4 часа назад
+
+Выбираем лог для коммитов которые есть в develop-feature1,
+но нет в develop - не слитые еще c develop, таких нет
+$ git log develop..develop-feature1  --pretty=format:"%s, %an, %ar" --after=4.hours
+--no-merges --first-parent
+
+Выбираем лог для коммитов которые есть в develop-feature1,
+но нет в master - не слитые еще c develop, один в develop, не слитый с master
+$ git log master..develop-feature1  --pretty=format:"%s, %an, %ar" --after=4.hours
+--no-merges --first-parent
+1_1:Plugin Translator WP (all done), Nataly Kulychyk, 2 часа назад
+
+
+Выбираем лог для коммитов которые есть в develop-feature1, но нет и в develop и
+в master - не слитые еще c develop и master
+нет таких
+$ git log develop..develop-feature1  master..develop-feature1
+--pretty=format:"%s, %an, %ar" --after=4.hours --no-merges --first-parent
+
+Добавим коммит в ветку develop-feature1, не будем сливать c develop,
+а develop с master
+$ git checkout develop-feature1
+Перешел к ветке 'develop-feature1'
+Your branch is up-to-date with 'origin/develop-feature1'.
+
+$ git add test_report.txt
+$ git commit -m"1_1:Plugin Translator WP (everything is ok)"
+[develop-feature1 c11973a] 1_1:Plugin Translator WP (everything is ok)
+ 1 file changed, 1 insertion(+)
+
+Проверяем - между develop и develop-feature1 
+$ git log develop..develop-feature1  --pretty=format:"%s, %an, %ar" --after=4.hours
+--no-merges --first-parent
+1_1:Plugin Translator WP (everything is ok), Nataly Kulychyk, 2 минуты назад
+
+между master и develop-feature1 
+$ git log master..develop-feature1  --pretty=format:"%s, %an, %ar" --after=4.hours
+--no-merges --first-parent
+1_1:Plugin Translator WP (everything is ok), Nataly Kulychyk, 3 минуты назад
+1_1:Plugin Translator WP (all done), Nataly Kulychyk, 2 часа назад
+
+требуемая команда - есть в develop-feature1, но нет в develop, нет в master
+$ git log develop..develop-feature1  master..develop-feature1 --pretty=format:"%s, %an, %ar"
+--after=4.hours --no-merges --first-parent
+1_1:Plugin Translator WP (everything is ok), Nataly Kulychyk, 59 секунд назад
+
+
+1.2. Выводит для каждого коммита из веток master, develop, в сообщении которых
+есть упоминание заданного номера задачи (допустим задачи 231), его сообщение,
+автора и дату. Сортировка по дате, первые более новые.
+
+Используем grep - чтобы фильтровать по какому-либо значению.
+Здесь номер задачи = 1_1, для разных веток.
+
+$ git log master --grep=1_1 --pretty=format:"%s, %an, %ad"
+1_1:Plugin Translator WP (need one more test), Nataly Kulychyk, Sat Jul 9 19:03:53 2016 +0300
+1_1:Plugin Translator WP (report added), Nataly Kulychyk, Sat Jul 9 18:46:47 2016 +0300
+1_1:Plugin Translator WP (settings file added), Nataly Kulychyk, Sat Jul 9 18:37:49 2016 +0300
+1_1:Plugin Translator WP (method setParams done), Nataly Kulychyk, Sat Jul 9 18:37:04 2016 +0300
+
+$ git log develop --grep=1_1 --pretty=format:"%s, %an, %ad"
+1_1:Plugin Translator WP (all done), Nataly Kulychyk, Sat Jul 9 20:25:28 2016 +0300
+1_1:Plugin Translator WP (need one more test), Nataly Kulychyk, Sat Jul 9 19:03:53 2016 +0300
+1_1:Plugin Translator WP (report added), Nataly Kulychyk, Sat Jul 9 18:46:47 2016 +0300
+1_1:Plugin Translator WP (settings file added), Nataly Kulychyk, Sat Jul 9 18:37:49 2016 +0300
+1_1:Plugin Translator WP (method setParams done), Nataly Kulychyk, Sat Jul 9 18:37:04 2016 +0300
+
+$ git log master develop --grep=1_1 --pretty=format:"%s, %an, %ad"
+1_1:Plugin Translator WP (all done), Nataly Kulychyk, Sat Jul 9 20:25:28 2016 +0300
+1_1:Plugin Translator WP (need one more test), Nataly Kulychyk, Sat Jul 9 19:03:53 2016 +0300
+1_1:Plugin Translator WP (report added), Nataly Kulychyk, Sat Jul 9 18:46:47 2016 +0300
+1_1:Plugin Translator WP (settings file added), Nataly Kulychyk, Sat Jul 9 18:37:49 2016 +0300
+1_1:Plugin Translator WP (method setParams done), Nataly Kulychyk, Sat Jul 9 18:37:04 2016 +0300
+
+
+2. “Избирательное слияние”. 
+
+
+$ git log develop..develop-feature1  master..develop-feature1 --pretty=format:"%s, %an, %ar" --after=4.hours --no-merges --first-parent
+1_1:Plugin Translator WP (unstablle commit 3), Nataly Kulychyk, 35 секунд назад    //это коллега
+1_1:Plugin Translator WP (unstablle commit 2), Nataly Kulychyk, 62 секунды назад   //это коллега
+1_1:Plugin Translator WP (unstablle commit 1), Nataly Kulychyk, 2 минуты назад     //это коллега
+1_1:Plugin Translator WP (fixed a big bug), Nataly Kulychyk, 6 минут назад  
+
+$ git log develop..develop-feature1  master..develop-feature1 --pretty=format:"%h %s, %an, %ar" --after=4.hours --no-merges --first-parent
+97712a9 1_1:Plugin Translator WP (unstablle commit 3), Nataly Kulychyk, 2 минуты назад
+e22df1e 1_1:Plugin Translator WP (unstablle commit 2), Nataly Kulychyk, 3 минуты назад
+1789fae 1_1:Plugin Translator WP (unstablle commit 1), Nataly Kulychyk, 3 минуты назад
+cf86963 1_1:Plugin Translator WP (fixed a big bug), Nataly Kulychyk, 8 минут назад
+
+Для вставки нужного коммита в develop используем  cherry-pick, находимся в develop
+cf86963 краткий хэш коммита, который хотим вставить.
+
+$ git cherry-pick cf86963
+[develop 9d678af] 1_1:Plugin Translator WP (fixed a big bug)
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+$ git hist --all
+* 9d678af 2016-07-09 | 1_1:Plugin Translator WP (fixed a big bug) (HEAD, develop) [Nataly Kulychyk]
+*   7d4a840 2016-07-09 | 1_1:Plugin Translator WP (everything is ok) Merge branch 'develop-feature1' into develop (origin/develop) [Nataly Kulychy
+|\  
+* \   8e6d17a 2016-07-09 | 1:Plugin Translator WP (merge conflict fixed) [Nataly Kulychyk]
+|\ \  
+* \ \   08a5806 2016-07-09 | " 1:Plugin Translator WP Merge branch 'develop-feature1' into develop" (tag: release1, origin/master, master) [Nataly
+|\ \ \  
+* \ \ \   7f6946e 2016-07-09 | " 1:Plugin Translator WP Merge branch 'develop-feature2' into develop" [Nataly Kulychyk]
+|\ \ \ \  
+| * | | | 550f8b9 2016-07-09 | 1_2:Plugin Translator WP (test ok) (origin/develop-feature2) [Nataly Kulychyk]
+* | | | |   83241ab 2016-07-09 | "1:Plugin Translator WP Merge branch 'develop-feature2' into develop" [Nataly Kulychyk]
+|\ \ \ \ \  
+| |/ / / /  
+| * | | | bbeb61d 2016-07-09 | 1_2:Plugin Translator WP (report added tested) [Nataly Kulychyk]
+| * | | | 8884797 2016-07-09 | 1_2:Plugin Translator WP (report added) [Nataly Kulychyk]
+| * | | | dcf6304 2016-07-09 | 1_2:Plugin Translator WP (curl replaced by wp_remoute_post) [Nataly Kulychyk]
+| | | | | * 97712a9 2016-07-09 | 1_1:Plugin Translator WP (unstablle commit 3) (origin/develop-feature1, develop-feature1) [Nataly Kulychyk]
+| | | | | * e22df1e 2016-07-09 | 1_1:Plugin Translator WP (unstablle commit 2) [Nataly Kulychyk]
+| | | | | * 1789fae 2016-07-09 | 1_1:Plugin Translator WP (unstablle commit 1) [Nataly Kulychyk]
+| | | | | * cf86963 2016-07-09 | 1_1:Plugin Translator WP (fixed a big bug) [Nataly Kulychyk]
+| | | | |/  
+| | | | * c11973a 2016-07-09 | 1_1:Plugin Translator WP (everything is ok) [Nataly Kulychyk]
+| | | |/  
+| | | * 0a9a345 2016-07-09 | 1_1:Plugin Translator WP (all done) [Nataly Kulychyk]
+| | |/  
+| | * f4037f7 2016-07-09 | 1_1:Plugin Translator WP (need one more test) [Nataly Kulychyk]
+| |/  
+|/|   
+* | 3cfc78c 2016-07-09 | 1_1:Plugin Translator WP (report added) [Nataly Kulychyk]
+* | f3493a7 2016-07-09 | 1_1:Plugin Translator WP (settings file added) [Nataly Kulychyk]
+* | d0257a9 2016-07-09 | 1_1:Plugin Translator WP (method setParams done) [Nataly Kulychyk]
+|/  
+* e90a167 2016-07-09 | 1:Plugin Translator WP (file test_report.txt added) [Nataly Kulychyk]
+* 58f3a3d 2016-07-09 | 1:Plugin Translator WP (plugins script) [Nataly Kulychyk]
+* 12e8168 2016-07-09 | 1:Plugin Translator WP (tasks added) [Nataly Kulychyk]
+* 3ac4658 2016-07-09 | 1:Plugin Translator WP (start project) [Nataly Kulychyk]
+
+
+
+3. “Исправление ошибок”.
+Дано: Вы начали работу над новой фичей и создали от develop дочернюю ветку
+develop-feature3.
+Сделали там несколько коммитов, и синхронизировались с сервером - все ваши
+изменения теперь в develop-feature3 на сервере.
+И тут вы вспомнили, что тим лид строго настрого сказал, что сообщение каждого
+коммита должно быть форматировано определенным образом (см. примечание п.0)
+и обязательно содержать номер задачи.
+А вы об этом забыли и теперь на сервере лежит ветка develop-feature3
+с “плохими” сообщениями.
+Задание: Предложите вариант, как наиболее просто исправить ситуацию,
+чтобы тим лид не увидел ваш промах.
+
+Чтобы никто не увидел на удаленном репозитории промах,
+придется воспользоваться ключем -f для push.
+Изменить сообщения можно 
+
+$ git rebase -i HEAD~3
+число указывает сколько коммитов от хеда мы хотим увидеть в редакторе для работы
+с ними.
+
+В редакторе указать r (использовать коммит, но изменить ему сообщение) -
+для коммитов, для которых будем менять сообщения
+после закрытия редактора - гит предложит для каждого отмеченного коммита ввести
+новое сообщение, каждый раз открывая новое окно редактора для каждого
+редактируемого коммита.
+
+После того, как все сообщения отредактированы,
+нужно будет запушить с ключом -f - но на стаке говорят, что практика плохая, и бьют за это. 
+Если это моя локальная ветка - наверное -то не совсем страшно, или предупредить коллег, что 
+получилось такое событие, чтоб не побилиб  ну и тим лиду не сдали.
+Если без ключа f, то нужно будет мержить - запись обязательно появится в репозитории, и действия незамеченными не останутся никак.
+
+$ git push -f origin develope-feature3
+
+Для редактирования только последнего коммита можно воспользоваться --amend 
+$ git commit --amend -m"1_3:Super new feature(third)"
+[develope-feature3 b91fe05] 1_3:Super new feature(third)
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+но пушить все равно с --force, это если без следов.
+например, я исправила последний коммит
+* b91fe05 2016-07-10 | 1_3:Super new feature(third) (HEAD, develope-feature3) [Nataly Kulychyk]
+| * 5e60993 2016-07-10 | Super new feature(third) (origin/develope-feature3) [Nataly Kulychyk]
+|/  
+
+запушила с force
+* b91fe05 2016-07-10 | 1_3:Super new feature(third) (HEAD, origin/develope-feature3, develope-feature3) [Nataly Kulychyk]
+
+
+для оставшихся двух rebase 
+* 9316400 2016-07-10 | 1_3:Super new feature(third) (HEAD, develope-feature3) [Nataly Kulychyk]
+* dd29228 2016-07-10 | 1_3:Super new feature(second) [Nataly Kulychyk]
+* 806f026 2016-07-10 | 1_3:Super new feature(first) [Nataly Kulychyk]
+| * b91fe05 2016-07-10 | 1_3:Super new feature(third) (origin/develope-feature3) [Nataly Kulychyk]
+| * b09024c 2016-07-10 | Super new feature(second) [Nataly Kulychyk]
+| * bfa636d 2016-07-10 | Super new feature(first) [Nataly Kulychyk]
+|/ 
+
+после форсажного пуша
+
+* 9316400 2016-07-10 | 1_3:Super new feature(third) (HEAD, origin/develope-feature3, develope-feature3) [Nataly Kulychyk]
+* dd29228 2016-07-10 | 1_3:Super new feature(second) [Nataly Kulychyk]
+* 806f026 2016-07-10 | 1_3:Super new feature(first) [Nataly Kulychyk]
+
+Если пушить без force, картинка будет такая, т.е. без мерджа запушить не удастся
+
+ *   ac1e656 2016-07-10 | Merge branch 'develop-feature3' of github.com:NatalyMac/AcademyBSHW3GitHub into develop-feature3 (origin/develop-featur
+| |\  
+| | * 63c219f 2016-07-10 | Super new feature(third) [Nataly Kulychyk]
+| | * bb86bb9 2016-07-10 | Super new feature(second) [Nataly Kulychyk]
+| | * c083030 2016-07-10 | Super new feature(first) [Nataly Kulychyk]
+| |/  
+|/|   
+| * 72400f3 2016-07-10 | 1_3:Super new feature(third) [Nataly Kulychyk]
+| * 74f86a2 2016-07-10 | 1_3:Super new feature(second) [Nataly Kulychyk]
+| * 742f2b7 2016-07-10 | 1_3:Super new feature(first) [Nataly Kulychyk]
+|/  
+* 025a820
+
+Нашла еще команду
+
+$ git filter-branch --msg-filter ' cat && echo "1_3_1:" ' HEAD~3..HEAD
+
+но команда  cat && echo "1_3_1:" добавит выражение "1_3_1:" в конец сообщения.
+Но зато быстро и сразу.
+
+Но все равно пушить нужно с force - если мы хотим, чтоб никто не заметил. 
+
+В блогах, народ пишет - если быстро исправлять, то проблем быть не должно.
+
+
+
+-----------------------------------------------------------------------
+Работа с репозиторием
+-----------------------------------------------------------------------
+
+
+
+Подготавливаем репозиторий
+
+1. Создаем репозиторий
+$ cd /home/natali/projects/HomeworkBinary/AcademyHW3_GitHub/
+$ git init
+Инициализированный пустой репозиторий Git в /home/natali/projects/HomeworkBinary/AcademyHW3_GitHub/.git/
+-------------------
+2. Коммиты в master
+$ git add readme.md
+$ git commit -m"1:Plugin Translator WP (start project)"
+[master (root-commit) 3ac4658] 1:Plugin Translator WP (start project)
+ 1 file changed, 2 insertions(+)
+ create mode 100644 readme.md
+
+$ git remote add origin git@github.com:NatalyMac/AcademyBSHW3GitHub.git
+$ git push -u origin master
+...
+
+$ git add new_tasks.txt
+$ git commit -m"1:Plugin Translator WP (tasks added)"
+[master 12e8168] 1:Plugin Translator WP (tasks added)
+ 1 file changed, 3 insertions(+)
+ create mode 100644 new_tasks.txt
+
+$ git push -u origin master
+....
+
+-----------------------------------
+3. Ветка develop, коммиты в develop
+$ git branch develop
+$ git push -u origin develop
+...
+$ git checkout develop
+Перешел к ветке 'develop'
+Your branch is up-to-date with 'origin/develop'.
+
+$ git add wp_yatranslate_class.php
+$ git commit -m"1:Plugin Translator WP (plugins script)"
+[develop 58f3a3d] 1:Plugin Translator WP (plugins script)
+ 1 file changed, 143 insertions(+)
+ create mode 100755 wp_yatranslate_class.php
+
+$ git add test_report.txt
+$ git commit -m"1:Plugin Translator WP (file test_report.txt added)"
+[develop e90a167] 1:Plugin Translator WP (file test_report.txt added)
+ 1 file changed, 7 insertions(+)
+ create mode 100644 test_report.txt
+
+$ git push -u origin develop
+
+-----------------------------------
+4. Ветка develop-feature1, коммиты
+$ git branch develop-feature1
+$ git push -u origin develop-feature1
+....
+$ git checkout develop-feature1
+Перешел к ветке 'develop-feature1'
+Your branch is up-to-date with 'origin/develop-feature1'.
+
+$ git add wp_yatranslate_class.php
+$ git commit -m"1_1:Plugin Translator WP (method setParams done)"
+[develop-feature1 d0257a9] 1_1:Plugin Translator WP (method setParams done)
+ 1 file changed, 24 insertions(+), 3 deletions(-)
+
+$ git add settings.json
+$ git commit -m"1_1:Plugin Translator WP (settings file added)"
+[develop-feature1 f3493a7] 1_1:Plugin Translator WP (settings file added)
+ 1 file changed, 1 insertion(+)
+ create mode 100755 settings.json
+
+$ git push -u origin develop-feature1
+
+------------------------------------
+5. Ветка develop-feature2, коммиты
+
+$ git checkout develop
+Перешел к ветке 'develop'
+Your branch is up-to-date with 'origin/develop'.
+
+$ git branch develop-feature2
+git push -u origin develop-feature2
+...
+$ git add wp_yatranslate_class.php
+$ git commit -m"1_2:Plugin Translator WP (curl replaced by wp_remoute_post)"
+[develop-feature2 dcf6304] 1_2:Plugin Translator WP (curl replaced by wp_remoute_post)
+ 1 file changed, 15 insertions(+), 24 deletions(-)
+
+$ git add test_report.txt
+$ git commit -m "1_2:Plugin Translator WP (report added)"
+[develop-feature2 8884797] 1_2:Plugin Translator WP (report added)
+ 1 file changed, 2 insertions(+)
+$ git push -u origin develop-feature2
+....
+
+------------------------------------
+Что получилось
+
+$ git hist --all
+* 8884797 2016-07-09 | 1_2:Plugin Translator WP (report added) (HEAD, origin/develop-feature2, develop-feature2) [Nataly Kulychyk]
+* dcf6304 2016-07-09 | 1_2:Plugin Translator WP (curl replaced by wp_remoute_post) [Nataly Kulychyk]
+| * f3493a7 2016-07-09 | 1_1:Plugin Translator WP (settings file added) (origin/develop-feature1, develop-feature1) [Nataly Kulychyk]
+| * d0257a9 2016-07-09 | 1_1:Plugin Translator WP (method setParams done) [Nataly Kulychyk]
+|/  
+* e90a167 2016-07-09 | 1:Plugin Translator WP (file test_report.txt added) (origin/develop, develop) [Nataly Kulychyk]
+* 58f3a3d 2016-07-09 | 1:Plugin Translator WP (plugins script) [Nataly Kulychyk]
+* 12e8168 2016-07-09 | 1:Plugin Translator WP (tasks added) (origin/master, master) [Nataly Kulychyk]
+* 3ac4658 2016-07-09 | 1:Plugin Translator WP (start project) [Nataly Kulychyk]
+
+-------------------------------------------
+6. Еще коммиты в develop-feature1, develope-feature2
+
+$ git checkout develop
+Перешел к ветке 'develop'
+Your branch is up-to-date with 'origin/develop'.
+
+$ git checkout develop-feature1
+Перешел к ветке 'develop-feature1'
+Your branch is up-to-date with 'origin/develop-feature1'.
+
+$ git add test_report.txt
+$ git commit -m "1_1:Plugin Translator WP (report added)"
+[develop-feature1 3cfc78c] 1_1:Plugin Translator WP (report added)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+$ git push -u origin develop-feature1
+...
+
+$ git checkout develop
+Перешел к ветке 'develop'
+Your branch is up-to-date with 'origin/develop'.
+
+$ git checkout develop-feature2
+Перешел к ветке 'develop-feature2'
+Your branch is up-to-date with 'origin/develop-feature2'.
+
+$ git add test_report.txt
+$ git commit -m "1_2:Plugin Translator WP (report added tested)"
+[develop-feature2 bbeb61d] 1_2:Plugin Translator WP (report added tested)
+ 1 file changed, 1 insertion(+)
+$ git push -u origin develop-feature2
+...
+
+$ git checkout develop
+Перешел к ветке 'develop'
+Your branch is up-to-date with 'origin/develop'.
+
+------------------------------------
+7. Слили develop и develop-feature1
+
+$ git merge develop-feature1
+Обновление e90a167..3cfc78c
+Fast-forward
+ settings.json            |  1 +
+ test_report.txt          |  2 +-
+ wp_yatranslate_class.php | 27 ++++++++++++++++++++++++---
+ 3 files changed, 26 insertions(+), 4 deletions(-)
+ create mode 100755 settings.json
+
+$ git push -u origin develop-feature1
+...
+
+-----------------------------------------
+8.Слили develop и develop-feature1
+$ git merge develop-feature2
+Автоматическое слияние wp_yatranslate_class.php
+Автоматическое слияние test_report.txt
+Merge made by the 'recursive' strategy.
+ test_report.txt          |  3 +++
+ wp_yatranslate_class.php | 39 +++++++++++++++------------------------
+ 2 files changed, 18 insertions(+), 24 deletions(-)
+
+$ git push -u origin develop
+...
+-----------------------------------
+Получилось 
+$ git hist --all
+*   83241ab 2016-07-09 | "1:Plugin Translator WP Merge branch 'develop-feature2' into develop" (HEAD, origin/develop, develop) [Nataly Kulychyk]
+|\  
+| * bbeb61d 2016-07-09 | 1_2:Plugin Translator WP (report added tested) (origin/develop-feature2, develop-feature2) [Nataly Kulychyk]
+| * 8884797 2016-07-09 | 1_2:Plugin Translator WP (report added) [Nataly Kulychyk]
+| * dcf6304 2016-07-09 | 1_2:Plugin Translator WP (curl replaced by wp_remoute_post) [Nataly Kulychyk]
+* | 3cfc78c 2016-07-09 | 1_1:Plugin Translator WP (report added) (origin/develop-feature1, develop-feature1) [Nataly Kulychyk]
+* | f3493a7 2016-07-09 | 1_1:Plugin Translator WP (settings file added) [Nataly Kulychyk]
+* | d0257a9 2016-07-09 | 1_1:Plugin Translator WP (method setParams done) [Nataly Kulychyk]
+|/  
+* e90a167 2016-07-09 | 1:Plugin Translator WP (file test_report.txt added) [Nataly Kulychyk]
+* 58f3a3d 2016-07-09 | 1:Plugin Translator WP (plugins script) [Nataly Kulychyk]
+* 12e8168 2016-07-09 | 1:Plugin Translator WP (tasks added) (origin/master, master) [Nataly Kulychyk]
+* 3ac4658 2016-07-09 | 1:Plugin Translator WP (start project) [Nataly Kulychyk]
+-----------------------------------
+
+9. Еще изменения в  develop-feature1б develop-feature2,  слияние с develop
+$ git checkout develop-feature1
+Перешел к ветке 'develop-feature1'
+Your branch is up-to-date with 'origin/develop-feature1'.
+
+$ git add test_report.txt
+$ git commit -m "1_1:Plugin Translator WP (need one more test)"
+[develop-feature1 f4037f7] 1_1:Plugin Translator WP (need one more test)
+ 1 file changed, 1 insertion(+)
+$ git push -u origin develop-feature1
+...
+
+$ git checkout develop-feature2
+Перешел к ветке 'develop-feature2'
+Your branch is up-to-date with 'origin/develop-feature2'.
+
+$ git add test_report.txt
+$ git commit -m "1_2:Plugin Translator WP (test ok)"
+[develop-feature2 550f8b9] 1_2:Plugin Translator WP (test ok)
+ 1 file changed, 1 insertion(+)
+$ git push -u origin develop-feature2
+...
+
+$ git hist --all
+* 550f8b9 2016-07-09 | 1_2:Plugin Translator WP (test ok) (HEAD, origin/develop-feature2, develop-feature2) [Nataly Kulychyk]
+| * f4037f7 2016-07-09 | 1_1:Plugin Translator WP (need one more test) (origin/develop-feature1, develop-feature1) [Nataly Kulychyk]
+| | *   83241ab 2016-07-09 | "1:Plugin Translator WP Merge branch 'develop-feature2' into develop" (origin/develop, develop) [Nataly Kulychyk]
+| | |\  
+| |/ /  
+| | /   
+| |/    
+|/|     
+* | bbeb61d 2016-07-09 | 1_2:Plugin Translator WP (report added tested) [Nataly Kulychyk]
+* | 8884797 2016-07-09 | 1_2:Plugin Translator WP (report added) [Nataly Kulychyk]
+* | dcf6304 2016-07-09 | 1_2:Plugin Translator WP (curl replaced by wp_remoute_post) [Nataly Kulychyk]
+| * 3cfc78c 2016-07-09 | 1_1:Plugin Translator WP (report added) [Nataly Kulychyk]
+| * f3493a7 2016-07-09 | 1_1:Plugin Translator WP (settings file added) [Nataly Kulychyk]
+| * d0257a9 2016-07-09 | 1_1:Plugin Translator WP (method setParams done) [Nataly Kulychyk]
+|/  
+* e90a167 2016-07-09 | 1:Plugin Translator WP (file test_report.txt added) [Nataly Kulychyk]
+* 58f3a3d 2016-07-09 | 1:Plugin Translator WP (plugins script) [Nataly Kulychyk]
+* 12e8168 2016-07-09 | 1:Plugin Translator WP (tasks added) (origin/master, master) [Nataly Kulychyk]
+* 3ac4658 2016-07-09 | 1:Plugin Translator WP (start project) [Nataly Kulychyk]
+
+$ git checkout develop
+Перешел к ветке 'develop'
+Your branch is up-to-date with 'origin/develop'.
+
+$ git merge develop-feature2
+Автоматическое слияние test_report.txt
+Merge made by the 'recursive' strategy.
+ test_report.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+$ git merge develop-feature1
+Автоматическое слияние test_report.txt
+Merge made by the 'recursive' strategy.
+ test_report.txt | 1 +
+ 1 file changed, 1 insertion(+)
+$ git push -u origin develop
+...
+
+$ git hist --all
+*   08a5806 2016-07-09 | " 1:Plugin Translator WP Merge branch 'develop-feature1' into develop" (HEAD, origin/develop, develop) [Nataly Kulychyk]
+|\  
+| * f4037f7 2016-07-09 | 1_1:Plugin Translator WP (need one more test) (origin/develop-feature1, develop-feature1) [Nataly Kulychyk]
+* |   7f6946e 2016-07-09 | " 1:Plugin Translator WP Merge branch 'develop-feature2' into develop" [Nataly Kulychyk]
+|\ \  
+| * | 550f8b9 2016-07-09 | 1_2:Plugin Translator WP (test ok) (origin/develop-feature2, develop-feature2) [Nataly Kulychyk]
+* | |   83241ab 2016-07-09 | "1:Plugin Translator WP Merge branch 'develop-feature2' into develop" [Nataly Kulychyk]
+|\ \ \  
+| |/ /  
+| | /   
+| |/    
+|/|     
+| * bbeb61d 2016-07-09 | 1_2:Plugin Translator WP (report added tested) [Nataly Kulychyk]
+| * 8884797 2016-07-09 | 1_2:Plugin Translator WP (report added) [Nataly Kulychyk]
+| * dcf6304 2016-07-09 | 1_2:Plugin Translator WP (curl replaced by wp_remoute_post) [Nataly Kulychyk]
+* | 3cfc78c 2016-07-09 | 1_1:Plugin Translator WP (report added) [Nataly Kulychyk]
+* | f3493a7 2016-07-09 | 1_1:Plugin Translator WP (settings file added) [Nataly Kulychyk]
+* | d0257a9 2016-07-09 | 1_1:Plugin Translator WP (method setParams done) [Nataly Kulychyk]
+|/  
+* e90a167 2016-07-09 | 1:Plugin Translator WP (file test_report.txt added) [Nataly Kulychyk]
+* 58f3a3d 2016-07-09 | 1:Plugin Translator WP (plugins script) [Nataly Kulychyk]
+* 12e8168 2016-07-09 | 1:Plugin Translator WP (tasks added) (origin/master, master) [Nataly Kulychyk]
+* 3ac4658 2016-07-09 | 1:Plugin Translator WP (start project) [Nataly Kulychyk]
+
+-------------------------------------------------------------
+10. Слияние develop, masterб tag release1 (в гите не видно почему-то)
+
+$ git checkout master
+Перешел к ветке 'master'
+Your branch is up-to-date with 'origin/master'.
+
+$ git merge develop
+Обновление 12e8168..08a5806
+Fast-forward
+ settings.json            |   1 +
+ test_report.txt          |  12 +++++++++
+ wp_yatranslate_class.php | 155 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 168 insertions(+)
+ create mode 100755 settings.json
+ create mode 100644 test_report.txt
+ create mode 100755 wp_yatranslate_class.php
+
+
+
+$ git tag release1
+$ git push -u origin master
+...
+
+-----------------------------------------------
+
+11. Удаление develop-feature2
+$ git branch -D develop-feature2
+Удалена ветка develop-feature2 (была 550f8b9).
+
+в удаленном репозитории 
+$ git push origin --delete :develop-feature2
+--------------------------------------------
+
+12. Изменения в develop-feature1
+$ git checkout develop-feature1
+Перешел к ветке 'develop-feature1'
+Your branch is up-to-date with 'origin/develop-feature1'.
+
+$ git add test_report.txt
+$ git commit -m "1_1:Plugin Translator WP (all done)"
+[develop-feature1 0a9a345] 1_1:Plugin Translator WP (all done)
+ 1 file changed, 2 insertions(+)
+
+git push -u origin develop-feature1
+...
+----------------------------------------------
+
+13. Конфликт при слиянии с develop
+$ git checkout develop
+Перешел к ветке 'develop'
+Your branch is up-to-date with 'origin/develop'.
+
+$ git merge develop-feature1
+Автоматическое слияние test_report.txt
+КОНФЛИКТ (content): Конфликт слияния в test_report.txt
+Automatic merge failed; fix conflicts and then commit the result.
+
+Для разрешения конфликта - редактируем файл с конфликтом, решая, что должно остаться в нем, что нет
+
+edit file test_report.txt
+
+Добавляем изменения и коммитим
+$ git add test_report.txt
+$ git commit -m"1:Plugin Translator WP (merge conflict fixed)" 
+
+*   8e6d17a 2016-07-09 | 1:Plugin Translator WP (merge conflict fixed) (HEAD, develop) [Nataly Kulychyk]
+|\  
+| * 0a9a345 2016-07-09 | 1_1:Plugin Translator WP (all done) (origin/develop-feature1, develop-feature1) [Nataly Kulychyk]
+* |   08a5806 2016-07-09 | " 1:Plugin Translator WP Merge branch 'develop-feature1' into develop" (tag: release1, origin/master, origin/develop, m
+|\ \  
+| |/  
+| * f4037f7 2016-07-09 | 1_1:Plugin Translator WP (need one more test) [Nataly Kulychyk]
+* |   7f6946e 2016-07-09 | " 1:Plugin Translator WP Merge branch 'develop-feature2' into develop" [Nataly Kulychyk]
+|\ \  
+| * | 550f8b9 2016-07-09 | 1_2:Plugin Translator WP (test ok) (origin/develop-feature2) [Nataly Kulychyk]
+* | |   83241ab 2016-07-09 | "1:Plugin Translator WP Merge branch 'develop-feature2' into develop" [Nataly Kulychyk]
+|\ \ \  
+| |/ /  
+| | /   
+| |/    
+|/|     
+| * bbeb61d 2016-07-09 | 1_2:Plugin Translator WP (report added tested) [Nataly Kulychyk]
+| * 8884797 2016-07-09 | 1_2:Plugin Translator WP (report added) [Nataly Kulychyk]
+| * dcf6304 2016-07-09 | 1_2:Plugin Translator WP (curl replaced by wp_remoute_post) [Nataly Kulychyk]
+* | 3cfc78c 2016-07-09 | 1_1:Plugin Translator WP (report added) [Nataly Kulychyk]
+* | f3493a7 2016-07-09 | 1_1:Plugin Translator WP (settings file added) [Nataly Kulychyk]
+* | d0257a9 2016-07-09 | 1_1:Plugin Translator WP (method setParams done) [Nataly Kulychyk]
+|/  
+* e90a167 2016-07-09 | 1:Plugin Translator WP (file test_report.txt added) [Nataly Kulychyk]
+* 58f3a3d 2016-07-09 | 1:Plugin Translator WP (plugins script) [Nataly Kulychyk]
+* 12e8168 2016-07-09 | 1:Plugin Translator WP (tasks added) [Nataly Kulychyk]
+* 3ac4658 2016-07-09 | 1:Plugin Translator WP (start project) [Nataly Kulychyk]
+
+$ git push origin develop
+...
+
+ 
